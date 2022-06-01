@@ -1,10 +1,7 @@
-from ctypes import Union
-from typing import Any, List
+from typing import  List
 
-import pandas as pd
 import torch
 from torch.utils.data import Dataset
-from transformers.tokenization_utils import PreTrainedTokenizer
 
 
 class CustomDataset(Dataset):
@@ -25,7 +22,7 @@ class CustomDataset(Dataset):
             add_special_tokens=True,
             max_length=self.max_len,
             pad_to_max_length=True,
-            return_token_type_ids=True
+            return_token_type_ids=True,
         )
         ids = inputs['input_ids']
         mask = inputs['attention_mask']

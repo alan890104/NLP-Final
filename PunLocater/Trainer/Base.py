@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from dataclasses import dataclass
 import os
 from typing import List
@@ -42,6 +43,19 @@ class TrainConfig:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
+
+class Trainer:
+    def __init__(self,**kwargs) -> None:
+        pass
+    @abstractmethod
+    def train(self):
+        return NotImplementedError
+    @abstractmethod
+    def validate(self):
+        return NotImplementedError
+    @abstractmethod
+    def save(self):
+        return NotImplementedError
 
 class BaseTrainer:
     '''
