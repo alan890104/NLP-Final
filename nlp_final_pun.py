@@ -32,9 +32,9 @@ def read_ques(filename):
     return ques_dict, ques_list
 
 # %%
-ques_dict, ques_list = read_ques('./training_set/data_homo_train.xml')
-sub = pd.read_csv('./training_set/benchmark_homo_train.csv')
-test_ques_dict, test_ques_list = read_ques('./testing_set/data_homo_test.xml')
+ques_dict, ques_list = read_ques('./PunLocater/data/training_set/data_homo_train.xml')
+sub = pd.read_csv('./PunLocater/data/training_set/benchmark_homo_train.csv')
+test_ques_dict, test_ques_list = read_ques('./PunLocater/data//testing_set/data_homo_test.xml')
 
 # %%
 def get_dataset(ques_dict, sub):
