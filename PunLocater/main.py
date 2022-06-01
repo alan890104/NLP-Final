@@ -1,9 +1,8 @@
 # %%
 # Importing
-from transformers import AdamW, BertTokenizer
+from transformers import BertTokenizer
 from torch.utils.data import DataLoader
 from Model.BERT import BERTTokenClassification
-from transformers import BertForSequenceClassification
 from Resolver import XMLResolver
 from Tokenizer import CustomDataset
 from Trainer import BaseTrainer, TrainConfig
@@ -60,7 +59,7 @@ model = BERTTokenClassification(PRETRAIN_NAME, num_labels=2)
 
 # %%
 # Step7 : set config for trainer
-train_config = TrainConfig(LearningRate=2e-5, LoggingInterval=2)
+train_config = TrainConfig(LearningRate=2e-5, LoggingInterval=2, Epoch=100)
 trainer = BaseTrainer(model, train_loader, test_loader,
                       train_config=train_config)
 

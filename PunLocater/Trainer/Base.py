@@ -4,15 +4,16 @@ from typing import List
 
 import numpy as np
 import torch
-from seqeval.metrics import (accuracy_score, classification_report, f1_score,
-                             precision_score, recall_score)
 from sqlalchemy import true
 from torch.nn import Module
 from torch.optim import Adam, Optimizer
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 from transformers import AdamW
 from transformers import get_linear_schedule_with_warmup
-
+from sklearn.metrics import accuracy_score
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
 
 @dataclass
 class TrainConfig:
@@ -27,6 +28,7 @@ class TrainConfig:
     LoggingInterval: int = 10
     ```
     '''
+
     def __init__(
         self,
         Epoch: int = 5,
@@ -66,61 +68,52 @@ class BaseTrainer:
         self.scheduler = get_linear_schedule_with_warmup(
             self.optimizer, num_warmup_steps=0, num_training_steps=len(train_loader)*self.train_config.Epoch)
         print(self.model)
+
     def train(self):
         # Turn on train mode
         self.model.train()
 
         # Start Training
-        for epoch in range(self.train_config.Epoch):
-            for _, batch in enumerate(self.train_loader,0):
+        with tqdm(total=self.train_config.Epoch) as pbar:
+            for epoch in range(self.train_config.Epoch):
+                for batchnum, batch in enumerate(self.train_loader, 0):
 
-                batch_input_ids = batch["ids"].to(self.device)
-                batch_input_mask = batch["mask"].to(self.device)
-                batch_labels = batch["labels"].to(self.device)
+                    batch_input_ids = batch["ids"].to(self.device)
+                    batch_input_mask = batch["mask"].to(self.device)
+                    batch_labels = batch["labels"].to(self.device)
 
-                output = self.model(
-                    batch_input_ids,
-                    batch_input_mask,
-                    labels=batch_labels,
-                )
-
-                self.optimizer.zero_grad()
-                output.loss.backward()
-                self.optimizer.step()
-                self.scheduler.step()
+                    output = self.model(
+                        batch_input_ids,
+                        batch_input_mask,
+                        labels=batch_labels,
+                    )
+                    writer.add_scalar("Loss/train", output.loss, epoch)
+                    self.optimizer.zero_grad()
+                    output.loss.backward()
+                    torch.nn.utils.clip_grad_norm_(
+                        self.model.parameters(), max_norm=1)
+                    self.optimizer.step()
+                    self.scheduler.step()
+                pbar.update()
 
     def validate(self):
         # Turn on testing mode
         self.model.eval()
-        eval_loss: float = 0
-        y_pred: List[List[str]] = []
-        y_true: List[List[str]] = []
+        y_true = []
+        y_pred = []
         # testing and get classification report
         with torch.no_grad():
             for _, data in enumerate(self.test_loader):
-                ids = data["ids"].to(self.device, dtype=torch.long)
-                mask = data["mask"].to(self.device, dtype=torch.long)
-                labels = data["labels"].to(self.device, dtype=torch.long)
-
-                loss, logits = self.model(ids, mask, labels=labels)
-                logits = logits.detach().cpu().numpy()
-                label_ids = labels.to("cpu").numpy()
-                y_true.append(label_ids)
-                y_pred.extend([list(p) for p in np.argmax(logits, axis=2)])
-
-                eval_loss += loss.mean().item()
-        accuracy = accuracy_score(y_true, y_pred)
-        precision = precision_score(y_true, y_pred)
-        recall = recall_score(y_true, y_pred)
-        f1 = f1_score(y_true, y_pred)
-        report = classification_report(y_true, y_pred, digits=4)
-        print("Eval loss: {}".format(eval_loss))
-        print("Accuracy : {:<20s}".format(accuracy))
-        print("Precision: {:<20s}".format(precision))
-        print("Recall   : {:<20s}".format(recall))
-        print("F1-score : {:<20s}".format(f1))
-        print("Report")
-        print(report)
+                ids = data['ids'].to(self.device, dtype=torch.long)
+                mask = data['mask'].to(self.device, dtype=torch.long)
+                targets = data['labels'].to(self.device, dtype=torch.long)
+                output = self.model(ids, mask, labels=targets)
+                preds = output.logits[:, :, 1]
+                _, pred_idx = torch.max(preds, dim=1)
+                _, true_idx = torch.max(targets, dim=1)
+                y_pred.extend(pred_idx.tolist())
+                y_true.extend(true_idx.tolist())
+        print("Accuracy: ", accuracy_score(y_true, y_pred))
 
     def save(self, path: str = None):
         '''
