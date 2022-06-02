@@ -66,7 +66,7 @@ class BaseTrainer:
         train_loader: DataLoader,
         test_loader: DataLoader,
         train_config: TrainConfig = None,
-        use_gpu: bool = true,
+        use_gpu: bool = True,
         **kwargs
     ) -> None:
         self.device = torch.device(

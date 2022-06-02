@@ -5,108 +5,110 @@ import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
-from Tokenizer import CustomDataset
+from Tokenizer import SynsetDataset
 from Trainer import BaseTrainer, TrainConfig
-from Model import BERTClass
+from Model import DualAttentiveBert
 from Trainer.Base import TrainConfig
 from Resolver import XMLResolver, testloader
 from config import Config
 import argparse
+from nltk.corpus import wordnet
 
-if __name__ == "__main__":
-    # %%
-    # Argument Parser
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--config", help="relative path to config yaml file",
-                        type=str, default="./config/submit/main.yaml")
-    args = parser.parse_args()
-    # %%
-    # Start Load Config file
-    config = Config(args.config)
 
-    # %%
-    # Start resolve training set
-    data = XMLResolver(config.Global.training_path, config.Global.answer_path)
+# Argument Parser
+# parser = argparse.ArgumentParser()
+# parser.add_argument("-c", "--config", help="relative path to config yaml file",
+#                     type=str, default="./config/submit/main.yaml")
+# args = parser.parse_args()
+# %%
+# Start Load Config file
+config = Config("./config/submit/main.yaml")
 
-    # %%
-    # Start loading tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(config.Global.pretrain_name)
+# %%
+# Start resolve training set
+data = XMLResolver(config.Global.training_path, config.Global.answer_path)
 
-    # %%
-    # Start Train Test Split
-    train_size = int(config.Global.train_percent*len(data))
-    train_sent, train_label = data[:train_size]
-    test_sent, test_label = data[train_size:]
+# %%
+# Start loading tokenizer
+tokenizer = AutoTokenizer.from_pretrained(config.Global.pretrain_name)
 
-    training_set = CustomDataset(
-        tokenizer, train_sent, train_label, config.Global.max_length, 'train', config)
-    validing_set = CustomDataset(
-        tokenizer, test_sent, test_label, config.Global.max_length, 'valid', config)
+# %%
+# Start Train Test Split
+train_size = int(config.Global.train_percent*len(data))
+train_sent, train_label = data[:train_size]
+test_sent, test_label = data[train_size:]
 
-    # %%
-    # Start generate dataloader
-    training_loader = DataLoader(
-        training_set, **config.Dataloader.Train.to_dict())
-    validing_loader = DataLoader(
-        validing_set, **config.Dataloader.Validate.to_dict())
+synsets = wordnet.synsets
 
-    # %%
-    # Start Building Model
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = BERTClass()
-    train_config = TrainConfig(
-        Epoch=config.Model.epoch,
-        LearningRate=config.Model.lr,
-    )
-    trainer = BaseTrainer(
-        model=model,
-        train_loader=training_loader,
-        test_loader=validing_loader,
-        train_config=train_config,
-    )
+training_set = SynsetDataset(
+    synsets, tokenizer, train_sent, train_label, config.Global.max_length, 'train', config)
+validing_set = SynsetDataset(
+    synsets, tokenizer, test_sent, test_label, config.Global.max_length, 'valid', config)
 
-    # %%
-    # Start Training
-    trainer.train()
+# %%
+# Start generate dataloader
+training_loader = DataLoader(
+    training_set, **config.Dataloader.Train.to_dict())
+validing_loader = DataLoader(
+    validing_set, **config.Dataloader.Validate.to_dict())
 
-    # %%
-    # Start Validating
-    trainer.validate()
-    trainer.save()
+# %%
+# Start Building Model
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+model = DualAttentiveBert(max_len=config.Global.max_length)
+train_config = TrainConfig(
+    Epoch=config.Model.epoch,
+    LearningRate=config.Model.lr,
+)
+trainer = BaseTrainer(
+    model=model,
+    train_loader=training_loader,
+    test_loader=validing_loader,
+    train_config=train_config,
+)
 
-    # %%
-    # Generating Result
-    test_sent_ids, test_sent, test_labels = testloader(
-        config.Global.testing_path)
+# %%
+# Start Training
+trainer.train()
 
-    testing_set = CustomDataset(
-        tokenizer, test_sent, test_labels, config.Global.max_length, 'test')
+# %%
+# Start Validating
+trainer.validate()
+trainer.save()
 
-    testing_loader = DataLoader(
-        testing_set, **config.Dataloader.Test.to_dict())
+# %%
+# Generating Result
+test_sent_ids, test_sent, test_labels = testloader(
+    config.Global.testing_path)
 
-    def test(model, testing_loader):
-        model.eval()
-        predictions = []
-        with torch.no_grad():
-            for _, data in enumerate(testing_loader, 0):
-                ids = data['ids'].to(device, dtype=torch.long)
-                mask = data['mask'].to(device, dtype=torch.long)
-                outputs = model(ids, mask, labels=None)
-                preds = outputs.logits[:, :, 1]
-                _, big_idx = torch.max(preds.data, dim=1)
-                ans = data['location'][0][big_idx[0]]
-                predictions.append(ans.item())
-        return predictions
+testing_set = SynsetDataset(
+    tokenizer, test_sent, test_labels, config.Global.max_length, 'test')
 
-    preds = test(model, testing_loader)
+testing_loader = DataLoader(
+    testing_set, **config.Dataloader.Test.to_dict())
 
-    ans_df = pd.DataFrame(
-        {
-            "text_id": test_sent_ids,
-            "word_id": preds
-        }
-    )
-    ans_df["text_id"] = ans_df["text_id"].apply(lambda x: "hom_"+str(x))
-    ans_df["word_id"] = ans_df.apply(lambda x: str(x[0])+"_"+str(x[1]), axis=1)
-    ans_df.to_csv("sub.csv", index=False)
+def test(model, testing_loader):
+    model.eval()
+    predictions = []
+    with torch.no_grad():
+        for _, data in enumerate(testing_loader, 0):
+            ids = data['ids'].to(device, dtype=torch.long)
+            mask = data['mask'].to(device, dtype=torch.long)
+            outputs = model(ids, mask, labels=None)
+            preds = outputs.logits[:, :, 1]
+            _, big_idx = torch.max(preds.data, dim=1)
+            ans = data['location'][0][big_idx[0]]
+            predictions.append(ans.item())
+    return predictions
+
+preds = test(model, testing_loader)
+
+ans_df = pd.DataFrame(
+    {
+        "text_id": test_sent_ids,
+        "word_id": preds
+    }
+)
+ans_df["text_id"] = ans_df["text_id"].apply(lambda x: "hom_"+str(x))
+ans_df["word_id"] = ans_df.apply(lambda x: str(x[0])+"_"+str(x[1]), axis=1)
+ans_df.to_csv("sub.csv", index=False)
