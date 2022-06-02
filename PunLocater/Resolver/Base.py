@@ -87,3 +87,19 @@ class XMLResolver(Resolver):
 
     def answers(self) -> List[List[str]]:
         return self.__answers__
+
+def testloader(path:str):
+    '''
+    test_sent_ids, test_sent, test_labels=None
+    '''
+    tree = ET.parse(path)
+    root = tree.getroot()
+    sent_ids = []
+    sents = []
+    for child in root:
+        tmp = []
+        for row in child:
+            tmp.append(row.text)
+        sent_ids.append(child.attrib["id"])
+        sents.append(' '.join(tmp))
+    return sent_ids,sents,None

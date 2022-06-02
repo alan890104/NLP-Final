@@ -12,8 +12,6 @@ from torch.utils.data import Dataset, DataLoader
 from transformers import RobertaModel, RobertaTokenizer
 import logging
 import numpy as np
-from sklearn.model_selection import train_test_split
-# 
 import transformers
 from torch.utils.data import Dataset, DataLoader, RandomSampler, SequentialSampler
 from transformers import BertForTokenClassification, BertTokenizer, BertConfig, BertModel
@@ -243,18 +241,13 @@ class BERTClass(torch.nn.Module):
     def __init__(self):
         super(BERTClass, self).__init__()
         self.l1 = transformers.BertForTokenClassification.from_pretrained('bert-base-cased', num_labels=2)
-        # self.l2 = torch.nn.Dropout(0.3)
-        # self.l3 = torch.nn.Linear(768, 1)
-    
+
     def forward(self, ids, mask, labels=None):
         output_1= self.l1(ids, mask, labels = labels)
-        # output_2 = self.l2(output_1[0])
-        # output = self.l3(output_2)
         return output_1
 
 # %%
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# device = torch.device("cpu")
 print(device)
 model = BERTClass()
 model.to(device)

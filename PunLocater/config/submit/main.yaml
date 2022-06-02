@@ -1,0 +1,27 @@
+Global:
+  training_path: "./data/training_set/data_homo_train.xml"
+  answer_path:  "./data/training_set/benchmark_homo_train.csv"
+  pretrain_name: "bert-base-cased"
+  testing_path: "./data/testing_set/data_homo_test.xml"
+  max_length: 80
+  train_percent: 0.8
+
+Dataloader:
+  Train:
+    batch_size: 16
+    num_workers: 0
+    shuffle: false
+  Validate:
+    batch_size: 8
+    num_workers: 0
+    shuffle: false
+  Test:
+    batch_size: 1
+    num_workers: 0
+    shuffle: false
+
+Model:
+  lr: .00005
+  epsilon: .00000001
+  epoch: 5
+
