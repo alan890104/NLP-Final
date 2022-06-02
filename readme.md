@@ -21,7 +21,7 @@ pip install -r requirements.txt
 
 4. run main.py with yaml settings, for example:
 ```console
-python main.py -c ./PunLocater/config/test/roberta.yaml
+python main.py -c ./config/test/roberta.yaml
 ```
 
 
