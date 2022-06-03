@@ -1,25 +1,9 @@
 import torch
 from transformers import BertForTokenClassification, BertModel
-import  torch.nn.functional  as F
+from torch.nn import  CrossEntropyLoss
 from collections import namedtuple
 
 BertOutput = namedtuple("BertOutput",["loss","logits"])
-
-class BERTTokenClassification(torch.nn.Module):
-    def __init__(self, pretrained_name: str, num_labels: int, **kwargs) -> None:
-        super(BERTTokenClassification, self).__init__()
-        self.bert = BertForTokenClassification.from_pretrained(
-            pretrained_name,
-            num_labels=num_labels,
-        )
-
-    def forward(self, ids, mask, labels):
-        out1 = self.bert(
-            ids,
-            mask,
-            labels=labels)
-        return out1
-
 
 class BERTClass(torch.nn.Module):
     def __init__(self):
@@ -45,12 +29,14 @@ class DualAttentiveBert(torch.nn.Module):
         self.merge = torch.nn.Linear(hidden_size, 2)
 
     def forward(self, ids, mask, defs, labels=None):
-        print(ids.size(),mask.size(),defs.size())
-        last_hidden = self.bert(ids, mask)
+        last_hidden = self.bert(ids, mask)[0]
         src1 = self.layer1(last_hidden)
         src2 = self.encode(defs)
         # Element-wise multiplication
-        multi = src1 * src2
+        multi = src1 + src2.unsqueeze(1)
         logits = self.merge(multi)
-        loss = F.cross_entropy(logits, labels)
+        loss = None
+        if labels is not None:
+            loss_fct = CrossEntropyLoss()
+            loss = loss_fct(logits.view(-1, 2), labels.view(-1))
         return BertOutput(loss=loss, logits=logits)

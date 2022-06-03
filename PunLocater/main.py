@@ -15,14 +15,9 @@ import argparse
 from nltk.corpus import wordnet
 
 
-# Argument Parser
-# parser = argparse.ArgumentParser()
-# parser.add_argument("-c", "--config", help="relative path to config yaml file",
-#                     type=str, default="./config/submit/main.yaml")
-# args = parser.parse_args()
 # %%
 # Start Load Config file
-config = Config("./config/submit/main.yaml")
+config = Config("./config/submit/dual.yaml")
 
 # %%
 # Start resolve training set
@@ -82,7 +77,7 @@ test_sent_ids, test_sent, test_labels = testloader(
     config.Global.testing_path)
 
 testing_set = SynsetDataset(
-    tokenizer, test_sent, test_labels, config.Global.max_length, 'test')
+    synsets, tokenizer, test_sent, test_labels, config.Global.max_length, 'test',config)
 
 testing_loader = DataLoader(
     testing_set, **config.Dataloader.Test.to_dict())
@@ -94,7 +89,8 @@ def test(model, testing_loader):
         for _, data in enumerate(testing_loader, 0):
             ids = data['ids'].to(device, dtype=torch.long)
             mask = data['mask'].to(device, dtype=torch.long)
-            outputs = model(ids, mask, labels=None)
+            defs = data['defs'].to(device, dtype=torch.float)
+            outputs = model(ids, mask,defs, labels=None)
             preds = outputs.logits[:, :, 1]
             _, big_idx = torch.max(preds.data, dim=1)
             ans = data['location'][0][big_idx[0]]
@@ -109,6 +105,5 @@ ans_df = pd.DataFrame(
         "word_id": preds
     }
 )
-ans_df["text_id"] = ans_df["text_id"].apply(lambda x: "hom_"+str(x))
 ans_df["word_id"] = ans_df.apply(lambda x: str(x[0])+"_"+str(x[1]), axis=1)
 ans_df.to_csv("sub.csv", index=False)

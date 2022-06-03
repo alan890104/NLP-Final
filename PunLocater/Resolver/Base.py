@@ -1,4 +1,3 @@
-import os
 import xml.etree.ElementTree as ET
 from abc import ABCMeta, abstractmethod, abstractproperty
 from typing import Dict, List, Tuple

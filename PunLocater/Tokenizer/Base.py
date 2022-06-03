@@ -56,9 +56,9 @@ class CustomDataset(Dataset):
             origin_label = self.labels[index].index(1)+1
             new_label = location_dict[origin_label][0]
             label_vec = [0]*new_label + [1]
-            label_vec.extend([0]*self.config.Global.max_length)
+            label_vec.extend([0]*self.max_len)
             label_tensor = torch.tensor(
-                label_vec[:self.config.Global.max_length], dtype=torch.long)
+                label_vec[:self.max_len], dtype=torch.long)
             return {
                 'token': tokens,
                 'ids': torch.tensor(ids, dtype=torch.long),
@@ -117,9 +117,8 @@ class SynsetDataset(Dataset):
                 if location_dict.get(loc) == None:
                     location_dict[loc] = []
                 location_dict[loc].append(idx)
-        # 擴展至self.config.Global.max_length
-        defs.extend([0]*self.config.Global.max_length)
-        defs = torch.tensor(defs[:self.config.Global.max_length], dtype=torch.long)
+        defs.extend([0]*self.max_len)
+        defs = torch.tensor(defs[:self.max_len], dtype=torch.float)
 
         if self.mode == "test":
             label_tensor = None
@@ -134,9 +133,9 @@ class SynsetDataset(Dataset):
             origin_label = self.labels[index].index(1)+1
             new_label = location_dict[origin_label][0]
             label_vec = [0]*new_label + [1]
-            label_vec.extend([0]*self.config.Global.max_length)
+            label_vec.extend([0]*self.max_len)
             label_tensor = torch.tensor(
-                label_vec[:self.config.Global.max_length], dtype=torch.long)
+                label_vec[:self.max_len], dtype=torch.long)
             return {
                 'token': tokens,
                 'ids': torch.tensor(ids, dtype=torch.long),
