@@ -4,7 +4,7 @@ Global:
   pretrain_name: "kanishka/GlossBERT"
   testing_path: "./data/testing_set/data_homo_test.xml"
   max_length: 80
-  train_percent: 0.8
+  train_percent: 0.9
 
 Dataloader:
   Train:
@@ -23,5 +23,5 @@ Dataloader:
 Model:
   lr: .00005
   epsilon: .00000001
-  epoch: 5
+  epoch: 10
 

@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # Argument Parser
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", help="relative path to config yaml file",
-                        type=str, default="./config/submit/main.yaml")
+                        type=str, default="./config/submit/gloss.yaml")
     args = parser.parse_args()
     # %%
     # Start Load Config file
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     # %%
     # Start Building Model
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = BERTClass()
+    model = BERTClass(config.Global.pretrain_name)
     train_config = TrainConfig(
         Epoch=config.Model.epoch,
         LearningRate=config.Model.lr,
