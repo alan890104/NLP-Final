@@ -1,5 +1,6 @@
 import torch
 from torch.utils.data import Dataset
+from nltk.corpus import stopwords
 
 
 class CustomDataset(Dataset):
@@ -82,6 +83,7 @@ class SynsetDataset(Dataset):
         self.max_len = max_len
         self.config = config
         self.Synsets = Synsets
+        self.threshold = 4 # Threshold of definition count
 
     def __getitem__(self, index):
         sentence = str(self.sentences[index])
@@ -107,12 +109,16 @@ class SynsetDataset(Dataset):
         for idx, token in enumerate(tokens):
             if token in ['[CLS]', '[SEP]', '[PAD]']:
                 locations.append(0)
-                defs.append(0)
+                defs.append(-1)
             else:
                 if '##' not in token:
                     loc += 1
-                # Count definitions
-                defs.append(len(self.Synsets(token)))
+                    # Count definitions
+                    syn_length = len(self.Synsets(token))
+                    defs.append(syn_length if syn_length>self.threshold else 0)
+                else:
+                    defs.append(-1)             
+                    
                 locations.append(loc)
                 if location_dict.get(loc) == None:
                     location_dict[loc] = []
