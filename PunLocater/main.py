@@ -53,7 +53,7 @@ if __name__ == "__main__":
     # %%
     # Start Building Model
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = BERTClass()
+    model = BERTClass(config.Global.pretrain_name)
     train_config = TrainConfig(
         Epoch=config.Model.epoch,
         LearningRate=config.Model.lr,

@@ -1,3 +1,4 @@
 models/
 runs/
 *.ipynb
+checkpoints/

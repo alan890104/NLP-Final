@@ -19,10 +19,10 @@ class BERTTokenClassification(torch.nn.Module):
 
 
 class BERTClass(torch.nn.Module):
-    def __init__(self):
+    def __init__(self,pretrained_name:str):
         super(BERTClass, self).__init__()
         self.l1 = BertForTokenClassification.from_pretrained(
-            'bert-base-cased', num_labels=2)
+            pretrained_name, num_labels=2)
 
     def forward(self, ids, mask, labels=None):
         output_1 = self.l1(ids, mask, labels=labels)
