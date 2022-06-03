@@ -107,6 +107,5 @@ if __name__ == "__main__":
             "word_id": preds
         }
     )
-    ans_df["text_id"] = ans_df["text_id"].apply(lambda x: "hom_"+str(x))
     ans_df["word_id"] = ans_df.apply(lambda x: str(x[0])+"_"+str(x[1]), axis=1)
     ans_df.to_csv("sub.csv", index=False)
