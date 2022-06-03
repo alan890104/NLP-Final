@@ -14,7 +14,7 @@ class Resolver(metaclass=ABCMeta):
     def __answer_Resolver__(self, answer_path: str=None) -> Dict[str, str]:
         if answer_path==None:
             return None
-        return pd.read_csv(answer_path, index_col=0, squeeze=True).to_dict()
+        return pd.read_csv(answer_path, index_col=0).squeeze().to_dict()
 
     @abstractmethod
     def __question_Resolver__(self, train_path: str) -> Dict[str, Dict[str, str]]:

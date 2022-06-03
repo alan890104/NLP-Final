@@ -8,11 +8,11 @@ Global:
 
 Dataloader:
   Train:
-    batch_size: 16
+    batch_size: 4
     num_workers: 0
     shuffle: false
   Validate:
-    batch_size: 8
+    batch_size: 2
     num_workers: 0
     shuffle: false
   Test:
@@ -23,5 +23,5 @@ Dataloader:
 Model:
   lr: .00005
   epsilon: .00000001
-  epoch: 5
+  epoch: 30
 

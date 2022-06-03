@@ -1,10 +1,12 @@
 # %%
 # Importing the libraries needed
 
+import enum
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
+from Model.BERT import DualAttentiveBert, RobertaClass
 from Tokenizer import CustomDataset
 from Trainer import BaseTrainer, TrainConfig
 from Model import BERTClass
@@ -53,7 +55,7 @@ if __name__ == "__main__":
     # %%
     # Start Building Model
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = BERTClass()
+    model = RobertaClass(num_labels=2)
     train_config = TrainConfig(
         Epoch=config.Model.epoch,
         LearningRate=config.Model.lr,
@@ -107,6 +109,5 @@ if __name__ == "__main__":
             "word_id": preds
         }
     )
-    ans_df["text_id"] = ans_df["text_id"].apply(lambda x: "hom_"+str(x))
     ans_df["word_id"] = ans_df.apply(lambda x: str(x[0])+"_"+str(x[1]), axis=1)
     ans_df.to_csv("sub.csv", index=False)

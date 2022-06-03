@@ -5,6 +5,7 @@ import torch
 from torch.nn import Module
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
 from transformers import AdamW, get_linear_schedule_with_warmup
 
 writer = SummaryWriter()
@@ -86,7 +87,7 @@ class BaseTrainer:
         nb_eval_steps, nb_eval_examples = 0, 0
         eval_loss = 0
         eval_accuracy = 0
-        for epoch in range(self.train_config.Epoch):
+        for epoch in tqdm(range(self.train_config.Epoch)):
             for _, data in enumerate(self.train_loader, 0):
                 ids = data['ids'].to(self.device, dtype=torch.long)
                 mask = data['mask'].to(self.device, dtype=torch.long)

@@ -32,9 +32,10 @@ class CustomDataset(Dataset):
         locations = []
         location_dict = {}
         loc = 0
+        # TODO Roberta的tokenize之後不同，應該要改規則
         for idx, token in enumerate(tokens):
 
-            if token in ['[CLS]', '[SEP]', '[PAD]']:
+            if token in ['<s>', '</s>', '<pad>']:
                 locations.append(0)
             else:
                 if '##' not in token:
