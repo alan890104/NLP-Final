@@ -4,7 +4,7 @@ Global:
   pretrain_name: "bert-base-cased"
   testing_path: "./data/testing_set/data_homo_test.xml"
   max_length: 100
-  train_percent: 0.8
+  train_percent: 0.85
 
 Dataloader:
   Train:
