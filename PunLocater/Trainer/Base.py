@@ -56,7 +56,7 @@ class Trainer:
         return NotImplementedError
 
 
-class BaseTrainer:
+class BaseTrainer(Trainer):
     '''
     Default Trainer with simple train and test
     '''
