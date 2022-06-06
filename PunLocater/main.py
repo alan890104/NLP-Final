@@ -1,3 +1,8 @@
+#Author: Yu-Lun Hsu
+#Student ID: 0716235
+#HW ID: final_project
+#Due Date: 06/06/2022
+
 # %%
 # Importing the libraries needed
 
