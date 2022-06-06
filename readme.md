@@ -25,6 +25,9 @@ python main.py -c ./config/test/roberta.yaml
 ```
 
 
+## Result
+![Model Design on Dual Attentive Network](https://i.imgur.com/Vc77yHV.png)
+
 ## Reference
 
 [A Dual-Attention Neural Network for Pun

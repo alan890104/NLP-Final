@@ -1,6 +1,7 @@
 import os
 from abc import abstractmethod
 from dataclasses import dataclass
+from numpy import dtype
 import torch
 from torch.nn import Module
 from torch.utils.data import DataLoader
@@ -91,8 +92,9 @@ class BaseTrainer:
                 ids = data['ids'].to(self.device, dtype=torch.long)
                 mask = data['mask'].to(self.device, dtype=torch.long)
                 targets = data['tags'].to(self.device, dtype=torch.long)
+                defs = data['defs'].to(self.device, dtype=torch.float)
 
-                outputs = self.model(ids, mask, labels=targets)
+                outputs = self.model(ids, mask, defs, labels=targets)
                 loss = outputs.loss
                 preds = outputs.logits[:, :, 1]
                 t, big_idx = torch.max(preds, dim=1)
@@ -124,7 +126,9 @@ class BaseTrainer:
                 ids = data['ids'].to(self.device, dtype=torch.long)
                 mask = data['mask'].to(self.device, dtype=torch.long)
                 targets = data['tags'].to(self.device, dtype=torch.long)
-                outputs = self.model(ids, mask, labels=targets)
+                defs = data['defs'].to(self.device, dtype=torch.float)
+
+                outputs = self.model(ids, mask,defs, labels=targets)
                 preds = outputs.logits[:, :, 1]
                 big_val, big_idx = torch.max(preds, dim=1)
                 target_val, target_idx = torch.max(targets, dim=1)
